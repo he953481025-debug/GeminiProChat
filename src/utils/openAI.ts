@@ -1,12 +1,14 @@
-import { GoogleGenerativeAI } from '@fuyun/generative-ai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+
+import { ProxyAgent, setGlobalDispatcher } from 'undici'
 
 const apiKey = (import.meta.env.GEMINI_API_KEY)
 const apiBaseUrl = (import.meta.env.API_BASE_URL)?.trim().replace(/\/$/, '')
 
-const genAI = apiBaseUrl
-  ? new GoogleGenerativeAI(apiKey, apiBaseUrl)
-  : new GoogleGenerativeAI(apiKey)
-
+const genAI = apiBaseUrl ? new GoogleGenerativeAI(apiKey, apiBaseUrl) : new GoogleGenerativeAI(apiKey)
+const dispatcher = new ProxyAgent({ uri: new URL(import.meta.env.HTTP_PROXY).toString() })
+// 全局fetch调用启用代理
+setGlobalDispatcher(dispatcher)
 export const startChatAndSendMessageStream = async(history: ChatMessage[], newMessage: string) => {
   const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
